@@ -17,8 +17,8 @@ con <- dbConnect(RMySQL::MySQL(),
                  host = "thedatalabdb.cjx6pxwxuzum.eu-west-1.rds.amazonaws.com", 
                  port = 3306,
                  dbname = "adzuna_data",
-                 user = "rpopat", 
-                 password = "thedatalab")
+                 user = "", 
+                 password = "")
 sql_query <- paste0("SELECT * FROM adzuna_data 
                      where date_queried >= '", this_week, "'")
 results <- dbSendQuery(con, sql_query)

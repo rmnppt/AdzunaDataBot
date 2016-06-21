@@ -1,11 +1,12 @@
 library(jsonlite)
 library(adzunar)
 library(RMySQL)
+source("/home/rpopat/AdzunaDataBot/authentications.R")
 Sys.time()
 d <- get_country_page(
   "data science", 
-  app_id = "134859f2", 
-  app_key = "1d215eccbc34d37430ce8693d575c51b",
+  app_id = adzuna_app_id, 
+  app_key = adzuna_app_key,
   max_age = 1000,
   n_results = 1e4
 )
@@ -32,8 +33,8 @@ con <- dbConnect(RMySQL::MySQL(),
                  host = "thedatalabdb.cjx6pxwxuzum.eu-west-1.rds.amazonaws.com", 
                  port = 3306,
                  dbname = "adzuna_data",
-                 user = "rpopat", 
-                 password = "thedatalab")
+                 user = AWS_RDS_user, 
+                 password = AWS_RDS_password)
 dbWriteTable(con, "adzuna_data", d_flat_reduced, append = TRUE)
 dbDisconnect(con)
 

@@ -1,11 +1,11 @@
 library(RMySQL)
-
+source("authentications.R")
 con <- dbConnect(RMySQL::MySQL(), 
                  host = "thedatalabdb.cjx6pxwxuzum.eu-west-1.rds.amazonaws.com", 
                  port = 3306,
                  dbname = "adzuna_data",
-                 user = "rpopat", 
-                 password = "thedatalab")
+                 user = "", 
+                 password = "")
 
 dbListFields(con, "adzuna_data")
 d <- dbReadTable(con, "adzuna_data")
