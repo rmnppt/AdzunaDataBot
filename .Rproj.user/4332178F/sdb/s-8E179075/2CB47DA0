@@ -1,0 +1,18 @@
+{
+    "contents" : "library(jsonlite)\nlibrary(adzunar)\nlibrary(RMySQL)\ndate()\nd <- get_country_page(\n  \"data science\", \n  app_id = \"134859f2\", \n  app_key = \"1d215eccbc34d37430ce8693d575c51b\",\n  max_age = 1000,\n  n_results = 1e4\n)\nd_flat <- flatten(d, recursive = TRUE) \n\nthese_are_lists <- logical(ncol(d_flat))\nfor(i in 1:ncol(d_flat)) {\n  these_are_lists[i] <- is.list(d_flat[,i])\n}\n\nd_flat <- d_flat[,-which(these_are_lists)]\nd_flat$date_queried <- Sys.time()\nd_flat$created <- as.Date(d_flat$created, \"%Y-%m-%dT%H:%M:%S)\")\n\ncols <- c(\"id\", \"created\",\"contract_time\", \"contract_type\",\n          \"salary_min\",\"salary_max\",\"salary_is_predicted\",\n          \"description\", \"title\",\"company.display_name\",\"company.canonical_name\",\n          \"category.tag\",  \"category.label\", \"location.display_name\",\n          \"longitude\", \"latitude\", \"date_queried\"\n          )\n\nd_flat_reduced <- subset(d_flat, select=cols)\n\ncon <- dbConnect(RMySQL::MySQL(), \n                 host = \"thedatalabdb.cjx6pxwxuzum.eu-west-1.rds.amazonaws.com\", \n                 port = 3306,\n                 dbname = \"adzuna_data\",\n                 user = \"rpopat\", \n                 password = \"thedatalab\")\ndbWriteTable(con, \"adzuna_data\", d_flat_reduced, append = TRUE)\ndbDisconnect(con)\n",
+    "created" : 1466155364206.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "975975413",
+    "id" : "2CB47DA0",
+    "lastKnownWriteTime" : 1466512262,
+    "path" : "~/AdzunaDataCollection/adzuna_data_grab_toDB.R",
+    "project_path" : "adzuna_data_grab_toDB.R",
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "type" : "r_source"
+}
