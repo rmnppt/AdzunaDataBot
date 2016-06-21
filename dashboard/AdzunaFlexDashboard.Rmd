@@ -1,0 +1,52 @@
+---
+title: "Untitled"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(RMySQL)
+library(ggplot2)
+library(lubridate)
+
+this_month <- Sys.time() - days(30)
+con <- dbConnect(RMySQL::MySQL(), 
+                 host = "thedatalabdb.cjx6pxwxuzum.eu-west-1.rds.amazonaws.com", 
+                 port = 3306,
+                 dbname = "adzuna_data",
+                 user = "rpopat", 
+                 password = "thedatalab")
+sql_query <- paste0("SELECT * FROM adzuna_data 
+                     where date_queried >= '", this_week, "'")
+results <- dbSendQuery(con, sql_query)
+d <- dbFetch(results, n=-1)
+dbDisconnect(con)
+```
+
+Column {data-width=650}
+-----------------------------------------------------------------------
+
+### Chart A
+
+```{r}
+ggplot(d, aes(x))
+```
+
+Column {data-width=350}
+-----------------------------------------------------------------------
+
+### Chart B
+
+```{r}
+
+```
+
+### Chart C
+
+```{r}
+
+```
+

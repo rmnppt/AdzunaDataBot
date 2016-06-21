@@ -17,6 +17,10 @@ table(d$created)
 res <- dbSendQuery(con, "SELECT count(*) FROM adzuna_data where date_queried >= '2016-06-21'")
 dbFetch(res, n=-1)
 
+### careful i am deleting everything here 
+### to start fresh with a new import at midnight
+# res <- dbSendQuery(con, "DELETE  FROM adzuna_data")
+
 hist(d$salary_max)
 
 dbDisconnect(con)

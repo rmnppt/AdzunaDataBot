@@ -1,7 +1,7 @@
 library(jsonlite)
 library(adzunar)
 library(RMySQL)
-date()
+Sys.time()
 d <- get_country_page(
   "data science", 
   app_id = "134859f2", 
@@ -15,17 +15,16 @@ these_are_lists <- logical(ncol(d_flat))
 for(i in 1:ncol(d_flat)) {
   these_are_lists[i] <- is.list(d_flat[,i])
 }
-
 d_flat <- d_flat[,-which(these_are_lists)]
-d_flat$date_queried <- Sys.time()
-d_flat$created <- as.Date(d_flat$created, "%Y-%m-%dT%H:%M:%S)")
 
-cols <- c("id", "created","contract_time", "contract_type",
-          "salary_min","salary_max","salary_is_predicted",
-          "description", "title","company.display_name","company.canonical_name",
+d_flat$date_queried <- Sys.time()
+d_flat$created <- as.POSIXct(d_flat$created)
+
+cols <- c("id", "created", "contract_time", "contract_type",
+          "salary_min", "salary_max", "salary_is_predicted",
+          "description", "title", "company.display_name", "company.canonical_name",
           "category.tag",  "category.label", "location.display_name",
-          "longitude", "latitude", "date_queried"
-          )
+          "longitude", "latitude", "date_queried")
 
 d_flat_reduced <- subset(d_flat, select=cols)
 
@@ -37,3 +36,6 @@ con <- dbConnect(RMySQL::MySQL(),
                  password = "thedatalab")
 dbWriteTable(con, "adzuna_data", d_flat_reduced, append = TRUE)
 dbDisconnect(con)
+
+cat("\n\n")
+
