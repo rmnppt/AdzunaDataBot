@@ -1,5 +1,5 @@
 ---
-title: "Untitled"
+title: "Data Science Jobs"
 output: 
   flexdashboard::flex_dashboard:
     orientation: columns
@@ -9,44 +9,72 @@ output:
 ```{r setup, include=FALSE}
 library(flexdashboard)
 library(RMySQL)
+library(leaflet)
 library(ggplot2)
 library(lubridate)
+library(tm)
 
-this_month <- Sys.time() - days(30)
-con <- dbConnect(RMySQL::MySQL(), 
-                 host = "thedatalabdb.cjx6pxwxuzum.eu-west-1.rds.amazonaws.com", 
-                 port = 3306,
-                 dbname = "adzuna_data",
-                 user = "", 
-                 password = "")
-sql_query <- paste0("SELECT * FROM adzuna_data 
-                     where date_queried >= '", this_week, "'")
-results <- dbSendQuery(con, sql_query)
-d <- dbFetch(results, n=-1)
-dbDisconnect(con)
+source("/home/rpopat/AdzunaDataBot/authentications.R")
+source("/home/rpopat/AdzunaDataBot/scripts/bow_functions.R")
+source("/home/rpopat/AdzunaDataBot/scripts/get_sql_data.R")
+
+theme_stripped <- theme(
+  panel.background = element_blank()
+)
+
+plot_col <- "darkgreen"
+
+job_points <- data.frame(
+  lng = d$longitude, 
+  lat = d$latitude
+)
+gaps <- which(apply(job_points, 1, function(x) any(is.na(x))))
+dups <- which(duplicated(job_points))
+to_remove <- unique(c(gaps, dups))
+d_map <- d[-to_remove,]
+
+words <- BagOfWords(d$description)$word_count
+top_words <- words[order(words$count, decreasing = TRUE), ]
+
+d$day_created <- date(d$created)
+
 ```
 
 Column {data-width=650}
 -----------------------------------------------------------------------
 
-### Chart A
+### Jobs Map
 
 ```{r}
-ggplot(d, aes(x))
+leaflet(d_map) %>%
+  addTiles() %>%
+  addCircleMarkers(
+    color = plot_col,
+    popup = paste0(
+      d_map$title, " \n £",
+      d_map$salary_min, " - ", d_map$salary_max
+    )
+  )
 ```
 
 Column {data-width=350}
 -----------------------------------------------------------------------
 
-### Chart B
+### Word Use
 
 ```{r}
-
+ggplot(top_words[1:20, ], aes(x = reorder(word, count), y = count)) +
+  geom_bar(fill = plot_col, stat = "identity") +
+  ylab("") + xlab("") +
+  coord_flip() +
+  theme_stripped
 ```
 
-### Chart C
+### Posting Rate
 
 ```{r}
-
+ggplot(d, aes(x = day_created)) +
+  geom_line(stat = "count", color = plot_col, size = 2) +
+  theme_stripped
 ```
 
