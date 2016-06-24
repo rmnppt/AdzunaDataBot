@@ -3,7 +3,7 @@ title: "Data Science Jobs"
 output: 
   flexdashboard::flex_dashboard:
     orientation: columns
-    vertical_layout: fill
+    logo: ~/AdzunaDataBot/logos/tdlLogo_small.jpg
 ---
 
 ```{r setup, include=FALSE}
@@ -18,9 +18,8 @@ source("/home/rpopat/AdzunaDataBot/authentications.R")
 source("/home/rpopat/AdzunaDataBot/scripts/bow_functions.R")
 source("/home/rpopat/AdzunaDataBot/scripts/get_sql_data.R")
 
-theme_stripped <- theme(
-  panel.background = element_blank()
-)
+duplicate_ads <- which(duplicated(d$id))
+d <- d[-duplicate_ads, ]
 
 plot_col <- "darkgreen"
 
@@ -38,7 +37,20 @@ top_words <- words[order(words$count, decreasing = TRUE), ]
 
 d$day_created <- date(d$created)
 
+theme_stripped <- theme(
+  panel.background = element_blank(),
+  axis.text = element_text(size = 15)
+)
 ```
+
+Inputs {.sidebar}
+-----------------------------------------------------------------------
+
+At The Data Lab, we want to stimulate a productive data science environment. Part of this is helping the job market. To keep our fingers on the pulse of data science jobs in the UK we created this little dashboard. We query the [Adzuna](https://developer.adzuna.com/) API every night to retrieve records pertaining to "data science". An EC2 instance achieves this for us. We store this in a MySQL database (also on Amazon). This front end was created in R with [flexdashboard](http://rmarkdown.rstudio.com/flexdashboard/index.html).
+
+If you have any questions about this or anything else we do, please head over to the [website](http://thedatalab.com/) or [get in touch](mailto:info@thedatalab.com) directly.
+
+![powered by Adzuna](/home/rpopat/AdzunaDataBot/logos/adzuna_logo_small.jpg)
 
 Column {data-width=650}
 -----------------------------------------------------------------------
