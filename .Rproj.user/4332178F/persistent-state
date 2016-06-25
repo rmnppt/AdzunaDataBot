@@ -1,5 +1,5 @@
 abend="1"
-active-client-id="9d53ee4c-981f-4649-a130-2fe8c440b6bd"
+active-client-id="941b8f71-9bd9-4452-9521-639c7e5a747f"
 build-last-errors="[]"
 build-last-errors-base-dir=""
 build-last-outputs="[]"
@@ -7,5 +7,5 @@ compile_pdf_state="{\"errors\":[],\"output\":\"\",\"running\":false,\"tab_visibl
 console_procs="[]"
 files.monitored-path=""
 find-in-files-state="{\"handle\":\"\",\"input\":\"\",\"path\":\"\",\"regex\":true,\"results\":{\"file\":[],\"line\":[],\"lineValue\":[],\"matchOff\":[],\"matchOn\":[]},\"running\":false}"
-imageDirtyState="0"
+imageDirtyState="1"
 saveActionState="0"
