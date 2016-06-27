@@ -4,6 +4,8 @@ output:
   flexdashboard::flex_dashboard:
     orientation: columns
     logo: ~/AdzunaDataBot/logos/tdlLogo_small.jpg
+    social: menu
+    source_code: embed
 ---
 
 ```{r setup, include=FALSE}
@@ -18,25 +20,31 @@ source("/home/rpopat/AdzunaDataBot/authentications.R")
 source("/home/rpopat/AdzunaDataBot/scripts/bow_functions.R")
 source("/home/rpopat/AdzunaDataBot/scripts/get_sql_data.R")
 
+### RENIVE DUPLICATES
 duplicate_ads <- which(duplicated(d$id))
-d <- d[-duplicate_ads, ]
+d_small <- d[-duplicate_ads, ]
+d_small$day_created <- date(d_small$created)
 
-plot_col <- "darkgreen"
+### STILL AVAILABLE
+today <- max(d$date_queried)
+available_today_id <- d$id[d$date_queried == today]
 
+### DATASET FOR MAPPING
 job_points <- data.frame(
-  lng = d$longitude, 
-  lat = d$latitude
+  lng = d_small$longitude, 
+  lat = d_small$latitude
 )
 gaps <- which(apply(job_points, 1, function(x) any(is.na(x))))
 dups <- which(duplicated(job_points))
 to_remove <- unique(c(gaps, dups))
-d_map <- d[-to_remove,]
+d_map <- d_small[-to_remove,]
 
-words <- BagOfWords(d$description)$word_count
+### DATASET FOR WORDS
+words <- BagOfWords(d_small$description)$word_count
 top_words <- words[order(words$count, decreasing = TRUE), ]
 
-d$day_created <- date(d$created)
-
+### AESTHETICS
+plot_col <- "darkgreen"
 theme_stripped <- theme(
   panel.background = element_blank(),
   axis.text = element_text(size = 15)
@@ -46,7 +54,7 @@ theme_stripped <- theme(
 Inputs {.sidebar}
 -----------------------------------------------------------------------
 
-
+<br></br>
 At The Data Lab, we want to stimulate a productive data science environment. Part of this is helping the job market. To keep our fingers on the pulse of data science jobs in the UK we created this little dashboard. We query the [Adzuna](https://developer.adzuna.com/) API every night to retrieve records pertaining to "data science". An EC2 instance achieves this for us. We store this in a MySQL database (also on Amazon). This front end was created in R with [flexdashboard](http://rmarkdown.rstudio.com/flexdashboard/index.html).
 
 If you have any questions about this or anything else we do, please head over to the [website](http://thedatalab.com/) or [get in touch](mailto:info@thedatalab.com) directly.
@@ -68,30 +76,37 @@ leaflet(d_map) %>%
   addTiles() %>%
   addCircleMarkers(
     color = plot_col,
-    popup = paste0(
-      d_map$title, " \n £",
-      d_map$salary_min, " - ", d_map$salary_max
+    popup = paste(
+      d_map$company.display_name, "<br>",
+      d_map$title, "<br>",
+      "£", d_map$salary_min, " - ", d_map$salary_max,
+      sep = ""
     )
   )
 ```
 
-Column {data-width=350}
+Column {data-width=400}
 -----------------------------------------------------------------------
 
-### Word Use
+### Salary
 
 ```{r}
-ggplot(top_words[1:20, ], aes(x = reorder(word, count), y = count)) +
-  geom_bar(fill = plot_col, stat = "identity") +
-  ylab("") + xlab("") +
-  coord_flip() +
+# ggplot(top_words[1:20, ], aes(x = reorder(word, count), y = count)) +
+#   geom_bar(fill = plot_col, stat = "identity") +
+#   ylab("") + xlab("") +
+#   coord_flip() +
+#   theme_stripped
+d_small$mean_salary_thou <- (d_small$salary_max - d_small$salary_min / 2)/1000
+ggplot(d_small, aes(x = day_created, y = mean_salary_thou)) +
+  geom_point(colour = plot_col) +
+  ylab("salary (£1000)") +
   theme_stripped
 ```
 
 ### Posting Rate
 
 ```{r}
-ggplot(d, aes(x = day_created)) +
+ggplot(d_small, aes(x = day_created)) +
   geom_line(stat = "count", color = plot_col, size = 2) +
   theme_stripped
 ```
