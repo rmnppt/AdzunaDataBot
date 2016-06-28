@@ -1,47 +1,21 @@
 ---
-title: "Data Science Jobs"
+title: "DATA SCIENCE JOB MARKET"
 output: 
   flexdashboard::flex_dashboard:
     orientation: columns
-    logo: ~/AdzunaDataBot/logos/tdlLogo_small.jpg
     social: menu
     source_code: embed
 ---
 
 ```{r setup, include=FALSE}
 library(flexdashboard)
-library(RMySQL)
 library(leaflet)
 library(ggplot2)
 library(lubridate)
-library(tm)
 
-source("/home/rpopat/AdzunaDataBot/authentications.R")
-source("/home/rpopat/AdzunaDataBot/scripts/bow_functions.R")
-source("/home/rpopat/AdzunaDataBot/scripts/get_sql_data.R")
-
-### RENIVE DUPLICATES
-duplicate_ads <- which(duplicated(d$id))
-d_small <- d[-duplicate_ads, ]
-d_small$day_created <- date(d_small$created)
-
-### STILL AVAILABLE
-today <- max(d$date_queried)
-available_today_id <- d$id[d$date_queried == today]
-
-### DATASET FOR MAPPING
-job_points <- data.frame(
-  lng = d_small$longitude, 
-  lat = d_small$latitude
-)
-gaps <- which(apply(job_points, 1, function(x) any(is.na(x))))
-dups <- which(duplicated(job_points))
-to_remove <- unique(c(gaps, dups))
-d_map <- d_small[-to_remove,]
-
-### DATASET FOR WORDS
-words <- BagOfWords(d_small$description)$word_count
-top_words <- words[order(words$count, decreasing = TRUE), ]
+d_small <- readRDS("/home/rpopat/AdzunaDataBot/dashboard/data/d_small.rds")
+d_map <- readRDS("/home/rpopat/AdzunaDataBot/dashboard/data/d_map.rds")
+top_words <- readRDS("/home/rpopat/AdzunaDataBot/dashboard/data/top_words.rds")
 
 ### AESTHETICS
 plot_col <- "darkgreen"
@@ -51,8 +25,8 @@ theme_stripped <- theme(
 )
 ```
 
-Inputs {.sidebar}
------------------------------------------------------------------------
+Backgroud {.sidebar}
+=======================================================================
 
 <br></br>
 At The Data Lab, we want to stimulate a productive data science environment. Part of this is helping the job market. To keep our fingers on the pulse of data science jobs in the UK we created this little dashboard. We query the [Adzuna](https://developer.adzuna.com/) API every night to retrieve records pertaining to "data science". An EC2 instance achieves this for us. We store this in a MySQL database (also on Amazon). This front end was created in R with [flexdashboard](http://rmarkdown.rstudio.com/flexdashboard/index.html).
@@ -66,6 +40,10 @@ Last update: `r Sys.time()`
 
 ![powered by Adzuna](/home/rpopat/AdzunaDataBot/logos/adzuna_logo_small.jpg)
 
+
+Map
+=======================================================================
+
 Column {data-width=650}
 -----------------------------------------------------------------------
 
@@ -74,16 +52,51 @@ Column {data-width=650}
 ```{r}
 leaflet(d_map) %>%
   addTiles() %>%
-  addCircleMarkers(
-    color = plot_col,
-    popup = paste(
-      d_map$company.display_name, "<br>",
-      d_map$title, "<br>",
-      "£", d_map$salary_min, " - ", d_map$salary_max,
-      sep = ""
-    )
-  )
+  addCircleMarkers(color = as.factor(d_map$still_available),
+                   popup = d_map$labels) %>%
+  addLegend("bottomleft", 
+            colors = c("darkgreen","red"),
+            labels = c("Still available",
+                       "Recently taken"), 
+            opacity = 0.8)
 ```
+
+Column {data-width=400}
+-----------------------------------------------------------------------
+
+### Median Posts per day
+
+```{r}
+ppd <- table(d_small$day_created)
+mppd <- signif(median(ppd, na.rm = TRUE), 3)
+valueBox(mppd, icon = "fa-file")
+```
+
+### Median Salary (thousands £)
+
+```{r}
+med_sal <- signif(median(d_small$mean_salary_thou, na.rm = TRUE), 5)
+valueBox(med_sal, icon = "fa-money")
+```
+
+### Most popular word
+
+```{r}
+top_word <- top_words$word[1]
+valueBox(paste0('"', top_word , '"'), icon = "fa-book")
+```
+
+### Percent permanent contracts
+
+```{r}
+contracts <- table(d_small$contract_type[!is.na(d_small$contract_type)])
+perc_perm <- contracts[2] / sum(contracts) * 100
+valueBox(signif(perc_perm, 3), icon = "fa-hourglass")
+```
+
+
+Dashboard
+=======================================================================
 
 Column {data-width=400}
 -----------------------------------------------------------------------
@@ -91,12 +104,6 @@ Column {data-width=400}
 ### Salary
 
 ```{r}
-# ggplot(top_words[1:20, ], aes(x = reorder(word, count), y = count)) +
-#   geom_bar(fill = plot_col, stat = "identity") +
-#   ylab("") + xlab("") +
-#   coord_flip() +
-#   theme_stripped
-d_small$mean_salary_thou <- (d_small$salary_max - d_small$salary_min / 2)/1000
 ggplot(d_small, aes(x = day_created, y = mean_salary_thou)) +
   geom_point(colour = plot_col) +
   ylab("salary (£1000)") +
@@ -108,6 +115,20 @@ ggplot(d_small, aes(x = day_created, y = mean_salary_thou)) +
 ```{r}
 ggplot(d_small, aes(x = day_created)) +
   geom_line(stat = "count", color = plot_col, size = 2) +
+  theme_stripped
+```
+
+
+Column {data-width=400}
+-----------------------------------------------------------------------
+
+### Word Use
+
+```{r}
+ggplot(top_words[1:20, ], aes(x = reorder(word, count), y = count)) +
+  geom_bar(fill = plot_col, stat = "identity") +
+  ylab("") + xlab("") +
+  coord_flip() +
   theme_stripped
 ```
 
