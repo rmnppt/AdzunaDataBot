@@ -1,5 +1,5 @@
 ---
-title: "DATA SCIENCE JOB MARKET"
+title: "DATA SCIENCE JOB MARKET (careful: under development!)"
 output: 
   flexdashboard::flex_dashboard:
     orientation: columns
@@ -13,12 +13,15 @@ library(leaflet)
 library(ggplot2)
 library(lubridate)
 
+d <- readRDS("/home/rpopat/AdzunaDataBot/dashboard/data/d.rds")
 d_small <- readRDS("/home/rpopat/AdzunaDataBot/dashboard/data/d_small.rds")
 d_map <- readRDS("/home/rpopat/AdzunaDataBot/dashboard/data/d_map.rds")
 top_words <- readRDS("/home/rpopat/AdzunaDataBot/dashboard/data/top_words.rds")
+skills_count <- readRDS("/home/rpopat/AdzunaDataBot/dashboard/data/skills_count.rds")
 
 ### AESTHETICS
 plot_col <- "darkgreen"
+plot_col_light <- "light green"
 theme_stripped <- theme(
   panel.background = element_blank(),
   axis.text = element_text(size = 15)
@@ -57,12 +60,19 @@ leaflet(d_map) %>%
   addLegend("bottomleft", 
             colors = c("darkgreen","red"),
             labels = c("Still available",
-                       "Recently taken"), 
+                       "Recently disappeared"), 
             opacity = 0.8)
 ```
 
 Column {data-width=400}
 -----------------------------------------------------------------------
+
+### Jobs currently available
+
+```{r}
+njobs <- sum(d_small$available_today)
+valueBox(njobs, icon = "fa-heartbeat")
+```
 
 ### Median Posts per day
 
@@ -94,6 +104,16 @@ perc_perm <- contracts[2] / sum(contracts) * 100
 valueBox(signif(perc_perm, 3), icon = "fa-hourglass")
 ```
 
+### Median lifespan of ads (days)
+
+```{r}
+id_days <- table(d_small$id, d_small$day_created)
+dead <- which(id_days[,ncol(id_days)] == 0 & id_days[,1] == 0)
+id_days_alive <- id_days[-dead,]
+valueBox(median(rowSums(id_days_alive)), icon = "fa-life-ring")
+```
+
+
 
 Dashboard
 =======================================================================
@@ -103,11 +123,13 @@ Column {data-width=400}
 
 ### Salary
 
-```{r}
-ggplot(d_small, aes(x = day_created, y = mean_salary_thou)) +
-  geom_point(colour = plot_col) +
-  ylab("salary (£1000)") +
-  theme_stripped
+```{r, fig.width = 9}
+ggplot(d_small, aes(x = day_created, y = mean_salary_thou)) + 
+  geom_point( aes(colour = salary_is_predicted), size=1.5)  + 
+  ylab("salary (£1000)") + 
+  xlab("Date created") +  
+  scale_colour_manual(values=c(plot_col, plot_col_light), name="Salary\nType", breaks=c("0", "1"), labels=c("Actual", "Predicted")) + 
+  theme_stripped 
 ```
 
 ### Posting Rate
@@ -132,3 +154,11 @@ ggplot(top_words[1:20, ], aes(x = reorder(word, count), y = count)) +
   theme_stripped
 ```
 
+### Skills mentioned
+```{r}
+ggplot(skills_count, aes(x = reorder(skill, count), y = count)) +
+  geom_bar(fill = plot_col, stat = "identity") +
+  ylab("") + xlab("") +
+  coord_flip() +
+  theme_stripped
+```

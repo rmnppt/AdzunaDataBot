@@ -1,4 +1,5 @@
 library(RMySQL)
+library(lubridate)
 this_period <- Sys.time() - days(60)
 con <- dbConnect(RMySQL::MySQL(), 
                  host = "thedatalabdb.cjx6pxwxuzum.eu-west-1.rds.amazonaws.com", 
