@@ -107,9 +107,9 @@ valueBox(signif(perc_perm, 3), icon = "fa-hourglass")
 ### Median lifespan of ads (days)
 
 ```{r}
-id_days <- table(d_small$id, d_small$day_created)
+id_days <- table(d$id, d$date_queried)
 dead <- which(id_days[,ncol(id_days)] == 0 & id_days[,1] == 0)
-id_days_alive <- id_days[-dead,]
+id_days_alive <- id_days[dead,]
 valueBox(median(rowSums(id_days_alive)), icon = "fa-life-ring")
 ```
 
