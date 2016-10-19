@@ -54,7 +54,7 @@ Column {data-width=650}
 
 ```{r}
 leaflet(d_map) %>%
-  addTiles() %>%
+  addProviderTiles("CartoDB.Positron", tileOptions(minZoom=10, maxZoom=17)) %>%  
   addCircleMarkers(color = as.factor(d_map$still_available),
                    popup = d_map$labels) %>%
   addLegend("bottomleft", 
@@ -82,11 +82,13 @@ mppd <- signif(median(ppd, na.rm = TRUE), 3)
 valueBox(mppd, icon = "fa-file")
 ```
 
-### Median Salary (thousands £)
+### Median lifespan of ads (days)
 
 ```{r}
-med_sal <- signif(median(d_small$mean_salary_thou, na.rm = TRUE), 5)
-valueBox(med_sal, icon = "fa-money")
+id_days <- table(d$id, d$date_queried)
+dead <- which(id_days[,ncol(id_days)] == 0 & id_days[,1] == 0)
+id_days_alive <- id_days[dead,]
+valueBox(median(rowSums(id_days_alive)), icon = "fa-life-ring")
 ```
 
 ### Most popular word
@@ -96,21 +98,19 @@ top_word <- top_words$word[1]
 valueBox(paste0('"', top_word , '"'), icon = "fa-book")
 ```
 
+### Median Salary (thousands £)
+
+```{r}
+med_sal <- signif(median(d_small$mean_salary_thou, na.rm = TRUE), 4)
+valueBox(med_sal, icon = "fa-money")
+```
+
 ### Percent permanent contracts
 
 ```{r}
 contracts <- table(d_small$contract_type[!is.na(d_small$contract_type)])
 perc_perm <- contracts[2] / sum(contracts) * 100
 valueBox(signif(perc_perm, 3), icon = "fa-hourglass")
-```
-
-### Median lifespan of ads (days)
-
-```{r}
-id_days <- table(d$id, d$date_queried)
-dead <- which(id_days[,ncol(id_days)] == 0 & id_days[,1] == 0)
-id_days_alive <- id_days[dead,]
-valueBox(median(rowSums(id_days_alive)), icon = "fa-life-ring")
 ```
 
 
@@ -134,7 +134,7 @@ ggplot(d_small, aes(x = day_created, y = mean_salary_thou)) +
 
 ### Posting Rate
 
-```{r}
+```{r, fig.width = 9}
 ggplot(d_small, aes(x = day_created)) +
   geom_line(stat = "count", color = plot_col, size = 2) +
   theme_stripped
@@ -146,7 +146,7 @@ Column {data-width=400}
 
 ### Word Use
 
-```{r}
+```{r, fig.width = 9}
 ggplot(top_words[1:20, ], aes(x = reorder(word, count), y = count)) +
   geom_bar(fill = plot_col, stat = "identity") +
   ylab("") + xlab("") +
@@ -155,7 +155,7 @@ ggplot(top_words[1:20, ], aes(x = reorder(word, count), y = count)) +
 ```
 
 ### Skills mentioned
-```{r}
+```{r, fig.width = 9}
 ggplot(skills_count, aes(x = reorder(skill, count), y = count)) +
   geom_bar(fill = plot_col, stat = "identity") +
   ylab("") + xlab("") +

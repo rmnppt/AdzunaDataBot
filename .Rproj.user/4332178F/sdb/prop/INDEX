@@ -9,6 +9,7 @@
 ~%2FAdzunaDataBot%2Fscripts%2Fbow_functions.R="8D41CAAF"
 ~%2FAdzunaDataBot%2Fscripts%2Fcreate_dashboard_objects.R="5050EB3F"
 ~%2FAdzunaDataBot%2Fscripts%2Fexplore_db.R="F6BF97A4"
+~%2FAdzunaDataBot%2Fscripts%2Fget_relevance_scores.R="CEFBB409"
 ~%2FAdzunaDataBot%2Fscripts%2Fget_sql_data.R="DA719BE1"
 ~%2FAdzunaDataBot%2Fscripts%2Finitial_db_fill.R="F065B909"
 ~%2FAdzunaDataBot%2Fsync_dashboard.sh="D3E11434"

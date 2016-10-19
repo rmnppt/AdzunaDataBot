@@ -1,5 +1,5 @@
 {
-    "path" : "~/AdzunaDataBot/dashboard",
+    "path" : "~/AdzunaDataBot/dashboard/data",
     "sortOrder" : [
         {
             "ascending" : true,

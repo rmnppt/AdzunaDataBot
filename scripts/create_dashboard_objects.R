@@ -4,6 +4,7 @@ library(tm)
 source("/home/rpopat/AdzunaDataBot/authentications.R")
 source("/home/rpopat/AdzunaDataBot/scripts/bow_functions.R")
 source("/home/rpopat/AdzunaDataBot/scripts/get_sql_data.R")
+source("/home/rpopat/AdzunaDataBot/scripts/get_relevance_scores.R")
 
 d$day_created <- date(d$created)
 
@@ -41,7 +42,12 @@ duplicate_ads <- which(duplicated(
 d_small <- d_small[-duplicate_ads, ]
 saveRDS(d_small, "/home/rpopat/AdzunaDataBot/dashboard/data/d_small.rds")
 
+### Calculate relevance scores
+# And filter results not deemed relevant (score == 0)
 
+d_small$relevance_score <- sapply(d_small$category.tag, get_relevance_scores)
+d_small <- d_small[d_small$relevance_score !=0,]
+saveRDS(d_small, "/home/rpopat/AdzunaDataBot/dashboard/data/d_small.rds")
 
 ### DATASET FOR MAPPING
 # need to handle repeat locations and missing locations
