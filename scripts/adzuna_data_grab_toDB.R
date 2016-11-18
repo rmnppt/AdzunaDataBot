@@ -12,12 +12,15 @@ d <- get_country_page(
 )
 d_flat <- flatten(d, recursive = TRUE) 
 
+# some of the collumns are lists (hierarchical/nested locations)
+# getting rid of these
 these_are_lists <- logical(ncol(d_flat))
 for(i in 1:ncol(d_flat)) {
   these_are_lists[i] <- is.list(d_flat[,i])
 }
 d_flat <- d_flat[,-which(these_are_lists)]
 
+# record the time
 d_flat$date_queried <- Sys.time()
 d_flat$created <- as.POSIXct(d_flat$created)
 

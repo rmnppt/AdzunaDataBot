@@ -5,6 +5,7 @@ output:
     orientation: columns
     social: menu
     source_code: embed
+    css: theme-lumen.css
 ---
 
 ```{r setup, include=FALSE}
